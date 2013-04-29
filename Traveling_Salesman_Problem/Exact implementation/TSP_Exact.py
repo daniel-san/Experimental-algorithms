@@ -1,0 +1,78 @@
+#! /usr/bin/env python
+# -*- coding: utf8 -*-
+import sys
+import math
+import time
+import random
+import itertools
+import node_file
+from copy import copy
+from graph import *
+
+class A_Node(Node):
+    def __init__(self,x,y):
+        Node.__init__(self,x,y)
+	self.id = None
+        
+    def calc_weight_between(self,node2):
+        return math.sqrt((node2.X - self.X)**2 + (node2.Y - self.Y)**2)
+
+def calc_total(nodes,perm):
+    weight = 0.0
+    size = len(perm)
+
+    for i in range(size):
+	start_id = perm[i]
+	finish_id = perm[(i+1) % size]
+	start = nodes[start_id]
+	finish = nodes[finish_id]
+
+	weight += start.calc_weight_between(finish)
+
+    return weight
+
+def H_Cycle(nodes):
+    nodes_number = len(nodes)
+    ids = range(nodes_number)
+    better = None
+    for perm in itertools.permutations(ids):
+	if not better:
+            better = copy(perm)
+            better_weight = calc_total(nodes,perm)
+            
+            
+        weight = calc_total(nodes,perm)
+        if weight < better_weight:
+	     better = copy(perm)
+	     better_weight = weight
+	     
+    return better
+    
+    
+if __name__ == "__main__":
+    nodes = []
+    if len(sys.argv) == 2:
+        nodes_coords = node_file.load(sys.argv[1])
+
+        for i in range(len(nodes_coords)):
+	    node = A_Node(nodes_coords[i][0],nodes_coords[i][1])
+	    node.id = i
+	    nodes.append(node)
+        n_total = len(nodes)
+    else:
+        n_total = input('Nodes number(n <= 10): ')
+        
+        for i in range(0,n_total):
+            node = A_Node(random.randint(0,1000),random.randint(0,1000))
+	    node.id = i
+            nodes.append(node)
+    
+        
+    start = time.time()
+    better_cycle = H_Cycle(nodes)
+    total_time = time.time() - start
+    
+    total_weight = calc_total(nodes,better_cycle)
+    
+    print "Total time: %f" % total_time
+    print "Total weight: %f" % total_weight
